@@ -3,6 +3,14 @@ import java.awt.*;
 
 public class BurgerLoginSwing {
     public BurgerLoginSwing(){
+        ImageIcon logos = new ImageIcon("logo.png");
+        Image scaleImage = logos.getImage().getScaledInstance(222, 120, Image.SCALE_SMOOTH);
+        ImageIcon rerizeIcon = new ImageIcon(scaleImage);
+
+        JLabel logoLabel = new JLabel(rerizeIcon);
+        logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+
         // 1. สร้างหน้าต่างหลัก (JFrame)
         JFrame frame = new JFrame("CDNP Burger - Login");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -68,6 +76,8 @@ public class BurgerLoginSwing {
         registerBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // 3. ใส่ Component ลงใน Main Panel พร้อมเว้นระยะห่าง (RigidArea)
+        mainPanel.add(logoLabel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 25)));
         mainPanel.add(titleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         mainPanel.add(phoneField);
