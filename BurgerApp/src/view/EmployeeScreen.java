@@ -48,7 +48,7 @@ public class EmployeeScreen extends JPanel {
         emptyPanel.setOpaque(false);
 
         JLabel emptyLabel = new JLabel("ไม่มีออเดอร์ค้างในขณะนี้", SwingConstants.CENTER);
-        emptyLabel.setFont(new Font("Tahoma", Font.BOLD, 32)); // ขนาดฟอนต์ใหญ่ 32pt
+        emptyLabel.setFont(new Font("Tahoma", Font.BOLD, 32));
         emptyLabel.setForeground(new Color(140, 140, 140));
 
         emptyPanel.add(emptyLabel);
@@ -144,8 +144,8 @@ public class EmployeeScreen extends JPanel {
             startBtn.setFocusPainted(false);
             startBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
             startBtn.addActionListener(e -> {
-                order.setStatus("กำลังทำ");
-                refreshOrders();
+                // *** เรียก OrderManager เพื่อเปลี่ยนสถานะเป็น "กำลังทำ" และบันทึกลงไฟล์ orders_history.txt ***
+                OrderManager.startOrder(order);
             });
             actionPanel.add(startBtn);
         } else {
@@ -156,6 +156,7 @@ public class EmployeeScreen extends JPanel {
             doneBtn.setFocusPainted(false);
             doneBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
             doneBtn.addActionListener(e -> {
+                // เรียก OrderManager เพื่อลบออเดอร์และบันทึกสถานะ "ทำเสร็จแล้ว" ลงไฟล์
                 OrderManager.removeOrder(order);
             });
             actionPanel.add(doneBtn);

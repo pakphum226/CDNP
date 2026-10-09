@@ -1,488 +1,488 @@
-﻿        import model.Order;
-        import model.OrderItem;
-        import model.OrderManager;
-        import view.*;
+﻿import view.WelcomeScreen;
+import view.WhiteBoxScreen;
+import view.MenuScreen;
+import view.CartScreen;
+import view.EmployeeScreen;
+import view.PaymentScreen;
 
-        import javax.swing.*;
-        import java.awt.*;
-        import java.net.URL;
-        import java.util.ArrayList;
-        import java.util.List;
+import model.Order;
+import model.OrderItem;
+import model.OrderManager;
 
-        public class MainFrame extends JFrame {
+import javax.swing.*;
+import java.awt.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
-            private CardLayout cardLayout;
-            private JPanel mainPanel;
-            private final List<OrderItem> cartItems = new ArrayList<>();
+public class MainFrame extends JFrame {
 
-            private MenuScreen menuScreen;
-            private CartScreen cartScreen;
-            private EmployeeScreen employeeScreen;
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+    private final List<OrderItem> cartItems = new ArrayList<>();
 
-            public MainFrame() {
+    private MenuScreen menuScreen;
+    private CartScreen cartScreen;
+    private EmployeeScreen employeeScreen;
 
-                setTitle("CDNP BURGERS System");
-                setSize(1000, 700);
-                setMinimumSize(new Dimension(430, 700));
-                setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                setLocationRelativeTo(null);
-                setResizable(true);
+    public MainFrame() {
 
-                cardLayout = new CardLayout();
-                mainPanel = new JPanel(cardLayout);
+        setTitle("CDNP BURGERS System");
+        setSize(1000, 700);
+        setMinimumSize(new Dimension(430, 700));
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setResizable(true);
 
-                // =========================
-                // Welcome
-                // =========================
-                WelcomeScreen welcomeScreen =
-                        new WelcomeScreen(() ->
-                                cardLayout.show(mainPanel, "Menu")
-                        );
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
 
-                // =========================
-                // WhiteBox
-                // =========================
-                WhiteBoxScreen whiteBoxScreen =
-                        new WhiteBoxScreen(() ->
-                                cardLayout.show(mainPanel, "Menu")
-                        );
-
-                // =========================
-                // Menu
-                // =========================
-                menuScreen = new MenuScreen(
-
-                        // ปุ่มย้อนกลับ
-                        () -> cardLayout.show(mainPanel, "Welcome"),
-
-                        // เปิดตะกร้า
-                        () -> {
-                            refreshCartUI();
-                            cardLayout.show(mainPanel, "Cart");
-                        },
-
-                        // เพิ่มสินค้า
-                        this::addToCart
+        // =========================
+        // Welcome
+        // =========================
+        WelcomeScreen welcomeScreen =
+                new WelcomeScreen(() ->
+                        cardLayout.show(mainPanel, "Menu")
                 );
 
-                // Cart
-                cartScreen = new CartScreen(
-
-                        // กลับไป Menu
-                        () -> cardLayout.show(mainPanel, "Menu"),
-
-                        // เพิ่มจำนวน
-                        this::increaseItem,
-
-                        // ลดจำนวน
-                        this::decreaseItem,
-
-                        // ลบสินค้า
-                        this::removeItem,
-
-                        // ชำระเงิน
-                        this::processCheckout
+        // =========================
+        // WhiteBox
+        // =========================
+        WhiteBoxScreen whiteBoxScreen =
+                new WhiteBoxScreen(() ->
+                        cardLayout.show(mainPanel, "Menu")
                 );
 
-                // =========================
-                // Employee
-                // =========================
-                employeeScreen =
-                        new EmployeeScreen(() ->
-                                cardLayout.show(mainPanel, "Menu")
-                        );
+        // =========================
+        // Menu
+        // =========================
+        menuScreen = new MenuScreen(
 
-                // =========================
-                // เพิ่มหน้าต่างทั้งหมด
-                // =========================
-                mainPanel.add(welcomeScreen, "Welcome");
-                mainPanel.add(whiteBoxScreen, "WhiteBox");
-                mainPanel.add(menuScreen, "Menu");
-                mainPanel.add(cartScreen, "Cart");
-                mainPanel.add(employeeScreen, "Employee");
+                // ปุ่มย้อนกลับ
+                () -> cardLayout.show(mainPanel, "Welcome"),
 
-                // =========================
-                // Menu Bar
-                // =========================
-                Font menuFont =
-                        new Font("Tahoma", Font.PLAIN, 14);
+                // เปิดตะกร้า
+                () -> {
+                    refreshCartUI();
+                    cardLayout.show(mainPanel, "Cart");
+                },
 
-                JMenuBar menuBar = new JMenuBar();
+                // เพิ่มสินค้า
+                this::addToCart
+        );
 
-                JMenu systemMenu =
-                        new JMenu("สลับบัญชีใช้งาน");
+        // Cart
+        cartScreen = new CartScreen(
 
-                systemMenu.setFont(menuFont);
+                // กลับไป Menu
+                () -> cardLayout.show(mainPanel, "Menu"),
 
-                // -------------------------
-                // บัญชีผู้ใช้
-                // -------------------------
-                JMenuItem userItem =
-                        new JMenuItem(
-                                "บัญชีผู้ใช้",
-                                getResizedIcon(
-                                        "/assets/User.jpg",
-                                        20,
-                                        20
-                                )
-                        );
+                // เพิ่มจำนวน
+                this::increaseItem,
 
-                userItem.setFont(menuFont);
+                // ลดจำนวน
+                this::decreaseItem,
 
-                userItem.addActionListener(e ->
-                        cardLayout.show(
-                                mainPanel,
-                                "Welcome"
+                // ลบสินค้า
+                this::removeItem,
+
+                // ชำระเงิน
+                this::processCheckout
+        );
+
+        // =========================
+        // Employee
+        // =========================
+        employeeScreen =
+                new EmployeeScreen(() ->
+                        cardLayout.show(mainPanel, "Menu")
+                );
+
+        // =========================
+        // เพิ่มหน้าต่างทั้งหมด
+        // =========================
+        mainPanel.add(welcomeScreen, "Welcome");
+        mainPanel.add(whiteBoxScreen, "WhiteBox");
+        mainPanel.add(menuScreen, "Menu");
+        mainPanel.add(cartScreen, "Cart");
+        mainPanel.add(employeeScreen, "Employee");
+
+        // =========================
+        // Menu Bar
+        // =========================
+        Font menuFont =
+                new Font("Tahoma", Font.PLAIN, 14);
+
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu systemMenu =
+                new JMenu("สลับบัญชีใช้งาน");
+
+        systemMenu.setFont(menuFont);
+
+        // -------------------------
+        // บัญชีผู้ใช้
+        // -------------------------
+        JMenuItem userItem =
+                new JMenuItem(
+                        "บัญชีผู้ใช้",
+                        getResizedIcon(
+                                "/assets/User.jpg",
+                                20,
+                                20
                         )
                 );
 
-                // -------------------------
-                // บัญชีพนักงาน
-                // -------------------------
-                JMenuItem employeeItem =
-                        new JMenuItem(
-                                "บัญชีพนักงาน",
-                                getResizedIcon(
-                                        "/assets/Employee.png",
-                                        20,
-                                        20
-                                )
-                        );
+        userItem.setFont(menuFont);
 
-                employeeItem.setFont(menuFont);
-
-                employeeItem.addActionListener(e -> {
-
-                    employeeScreen.refreshOrders();
-
-                    cardLayout.show(
-                            mainPanel,
-                            "Employee"
-                    );
-                });
-
-                systemMenu.add(userItem);
-                systemMenu.add(employeeItem);
-
-                menuBar.add(systemMenu);
-
-                setJMenuBar(menuBar);
-
-                // =========================
-                // แสดงหน้าเริ่มต้น
-                // =========================
-                add(mainPanel);
-
+        userItem.addActionListener(e ->
                 cardLayout.show(
                         mainPanel,
                         "Welcome"
-                );
-            }
+                )
+        );
 
-            // =====================================================
-            // Resize Icon
-            // =====================================================
-
-            private ImageIcon getResizedIcon(
-                    String path,
-                    int width,
-                    int height
-            ) {
-
-                URL imgURL =
-                        getClass().getResource(path);
-
-                if (imgURL != null) {
-
-                    ImageIcon icon =
-                            new ImageIcon(imgURL);
-
-                    Image img =
-                            icon.getImage()
-                                    .getScaledInstance(
-                                            width,
-                                            height,
-                                            Image.SCALE_SMOOTH
-                                    );
-
-                    return new ImageIcon(img);
-                }
-
-                return null;
-            }
-
-            // =====================================================
-            // CHECKOUT
-            // =====================================================
-
-            private void processCheckout() {
-
-                // -------------------------
-                // ไม่มีสินค้า
-                // -------------------------
-                if (cartItems.isEmpty()) {
-
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "ไม่มีสินค้าในตะกร้า!",
-                            "แจ้งเตือน",
-                            JOptionPane.WARNING_MESSAGE
-                    );
-
-                    return;
-                }
-
-                // -------------------------
-                // คำนวณราคารวม
-                // -------------------------
-                double totalPrice =
-                        cartItems.stream()
-                                .mapToDouble(
-                                        OrderItem::getTotalPrice
-                                )
-                                .sum();
-
-                // -------------------------
-                // สร้างรายละเอียดสินค้า
-                // -------------------------
-                StringBuilder details =
-                        new StringBuilder();
-
-                details.append(
-                        "คุณต้องการยืนยันการสั่งซื้อรายการต่อไปนี้หรือไม่?\n\n"
-                );
-
-                details.append(
-                        "--------------------------------------------------\n"
-                );
-
-                for (OrderItem item : cartItems) {
-
-                    details.append(
-                            String.format(
-                                    "• %s\n" +
-                                    "  จำนวน: %d ชิ้น  " +
-                                    "(฿%.0f x %d = ฿%.0f)\n",
-
-                                    item.getName(),
-                                    item.getQuantity(),
-                                    item.getPrice(),
-                                    item.getQuantity(),
-                                    item.getTotalPrice()
-                            )
-                    );
-                }
-
-                details.append(
-                        "--------------------------------------------------\n"
-                );
-
-                details.append(
-                        String.format(
-                                "ราคารวมทั้งสิ้น: ฿%.0f",
-                                totalPrice
+        // -------------------------
+        // บัญชีพนักงาน
+        // -------------------------
+        JMenuItem employeeItem =
+                new JMenuItem(
+                        "บัญชีพนักงาน",
+                        getResizedIcon(
+                                "/assets/Employee.png",
+                                20,
+                                20
                         )
                 );
 
-                // =================================================
-                // หน้าต่างยืนยันคำสั่งซื้อ
-                // มีแค่จุดนี้จุดเดียวใน MainFrame
-                // =================================================
+        employeeItem.setFont(menuFont);
 
-                ImageIcon confirmIcon =
-                        getResizedIcon(
-                                "/assets/Slip_2..png",
-                                55,
-                                55
-                        );
+        employeeItem.addActionListener(e -> {
 
-                int confirm;
+            employeeScreen.refreshOrders();
 
-                if (confirmIcon != null) {
+            cardLayout.show(
+                    mainPanel,
+                    "Employee"
+            );
+        });
 
-                    confirm =
-                            JOptionPane.showConfirmDialog(
-                                    this,
-                                    details.toString(),
-                                    "ยืนยันคำสั่งซื้อ",
-                                    JOptionPane.OK_CANCEL_OPTION,
-                                    JOptionPane.PLAIN_MESSAGE,
-                                    confirmIcon
+        systemMenu.add(userItem);
+        systemMenu.add(employeeItem);
+
+        menuBar.add(systemMenu);
+
+        setJMenuBar(menuBar);
+
+        // =========================
+        // แสดงหน้าเริ่มต้น
+        // =========================
+        add(mainPanel);
+
+        cardLayout.show(
+                mainPanel,
+                "Welcome"
+        );
+    }
+
+    // =====================================================
+    // Resize Icon
+    // =====================================================
+
+    private ImageIcon getResizedIcon(
+            String path,
+            int width,
+            int height
+    ) {
+
+        URL imgURL =
+                getClass().getResource(path);
+
+        if (imgURL != null) {
+
+            ImageIcon icon =
+                    new ImageIcon(imgURL);
+
+            Image img =
+                    icon.getImage()
+                            .getScaledInstance(
+                                    width,
+                                    height,
+                                    Image.SCALE_SMOOTH
                             );
 
-                } else {
+            return new ImageIcon(img);
+        }
 
-                    // ถ้าหารูปไม่เจอ ให้ใช้แบบปกติ
-                    confirm =
-                            JOptionPane.showConfirmDialog(
-                                    this,
-                                    details.toString(),
-                                    "ยืนยันคำสั่งซื้อ",
-                                    JOptionPane.OK_CANCEL_OPTION,
-                                    JOptionPane.QUESTION_MESSAGE
-                            );
-                }
+        return null;
+    }
 
-                // =================================================
-                // กด OK
-                // =================================================
+    // =====================================================
+    // CHECKOUT
+    // =====================================================
 
-                if (confirm == JOptionPane.OK_OPTION) {
+    private void processCheckout() {
 
-                    // -------------------------
-                    // สร้าง Order
-                    // -------------------------
-                    Order newOrder =
-                            new Order(
-                                    new ArrayList<>(cartItems),
-                                    totalPrice,
-                                    "ชำระเงินสำเร็จ"
-                            );
+        // -------------------------
+        // ไม่มีสินค้า
+        // -------------------------
+        if (cartItems.isEmpty()) {
 
-                    OrderManager.addOrder(newOrder);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "ไม่มีสินค้าในตะกร้า!",
+                    "แจ้งเตือน",
+                    JOptionPane.WARNING_MESSAGE
+            );
 
-                    // -------------------------
-                    // เปิดหน้า Payment
-                    // -------------------------
-                    PaymentScreen paymentScreen =
-                            new PaymentScreen(
-                                    cartItems,
-                                    totalPrice,
-                                    () -> {
+            return;
+        }
 
-                                        // ล้างตะกร้า
-                                        cartItems.clear();
+        // -------------------------
+        // คำนวณราคารวม
+        // -------------------------
+        double totalPrice =
+                cartItems.stream()
+                        .mapToDouble(
+                                OrderItem::getTotalPrice
+                        )
+                        .sum();
 
-                                        // อัปเดตจำนวนตะกร้า
-                                        updateCartBadge();
+        // -------------------------
+        // สร้าง UI กล่องข้อความสำหรับ Pop-up ยืนยัน (ใส่ Scrollbar)
+        // -------------------------
+        JPanel dialogContent = new JPanel();
+        dialogContent.setLayout(new BoxLayout(dialogContent, BoxLayout.Y_AXIS));
 
-                                        // กลับหน้า Welcome
-                                        cardLayout.show(
-                                                mainPanel,
-                                                "Welcome"
-                                        );
-                                    }
-                            );
+        JLabel headerLabel = new JLabel("คุณต้องการยืนยันการสั่งซื้อหรือไม่?");
+        headerLabel.setFont(new Font("Tahoma", Font.BOLD, 13));
+        headerLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        dialogContent.add(headerLabel);
+        dialogContent.add(Box.createRigidArea(new Dimension(0, 10)));
 
-                    mainPanel.add(
-                            paymentScreen,
-                            "Payment"
+        // สร้างรายละเอียดรายการสินค้า
+        StringBuilder itemsText = new StringBuilder();
+        itemsText.append("--------------------------------------------------\n");
+
+        for (OrderItem item : cartItems) {
+            itemsText.append(
+                    String.format(
+                            "• %s\n" +
+                            "  จำนวน: %d ชิ้น  (฿%.0f x %d = ฿%.0f)\n",
+                            item.getName(),
+                            item.getQuantity(),
+                            item.getPrice(),
+                            item.getQuantity(),
+                            item.getTotalPrice()
+                    )
+            );
+        }
+
+        itemsText.append("--------------------------------------------------\n");
+
+        JTextArea textArea = new JTextArea(itemsText.toString());
+        textArea.setFont(new Font("Tahoma", Font.PLAIN, 12));
+        textArea.setEditable(false);
+        textArea.setOpaque(false);
+
+        // ครอบด้วย JScrollPane และจำกัดความสูงไว้ที่ 280px เพื่อไม่ให้ป๊อปอัปยืดล้นขอบจอ
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(380, 280));
+        scrollPane.getVerticalScrollBar().setUnitIncrement(14);
+        scrollPane.setBorder(null);
+
+        dialogContent.add(scrollPane);
+        dialogContent.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        JLabel totalLabel = new JLabel(String.format("ราคารวมทั้งสิ้น: ฿%.0f", totalPrice));
+        totalLabel.setFont(new Font("Tahoma", Font.BOLD, 15));
+        totalLabel.setForeground(new Color(180, 0, 0));
+        totalLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        dialogContent.add(totalLabel);
+
+        // =================================================
+        // หน้าต่างยืนยันคำสั่งซื้อ
+        // =================================================
+
+        ImageIcon confirmIcon = 
+                getResizedIcon(
+                        "/assets/Slip_2..png",
+                        60,
+                        60
+                );
+
+        int confirm;
+
+        if (confirmIcon != null) {
+
+            confirm =
+                    JOptionPane.showConfirmDialog(
+                            this,
+                            dialogContent,
+                            "ยืนยันคำสั่งซื้อ",
+                            JOptionPane.OK_CANCEL_OPTION,
+                            JOptionPane.PLAIN_MESSAGE,
+                            confirmIcon
                     );
 
-                    cardLayout.show(
-                            mainPanel,
-                            "Payment"
+        } else {
+
+            // ถ้าหารูปไม่เจอ ให้ใช้แบบปกติ
+            confirm =
+                    JOptionPane.showConfirmDialog(
+                            this,
+                            dialogContent,
+                            "ยืนยันคำสั่งซื้อ",
+                            JOptionPane.OK_CANCEL_OPTION,
+                            JOptionPane.QUESTION_MESSAGE
                     );
-                }
-            }
+        }
 
-            // =====================================================
-            // ADD TO CART
-            // =====================================================
+        // =================================================
+        // กด OK
+        // =================================================
 
-            private void addToCart(OrderItem newItem) {
+        if (confirm == JOptionPane.OK_OPTION) {
 
-                boolean found = false;
+            // -------------------------
+            // 1. สร้าง Order ใหม่
+            // -------------------------
+            Order newOrder =
+                    new Order(
+                            new ArrayList<>(cartItems),
+                            totalPrice,
+                            "ชำระเงินสำเร็จ"
+                    );
 
-                for (OrderItem item : cartItems) {
+            // 2. บันทึกลง OrderManager
+            OrderManager.addOrder(newOrder);            
 
-                    if (item.getName()
-                            .equals(newItem.getName())) {
+            // -------------------------
+            // 3. เปิดหน้า Payment (ส่งวัตถุ newOrder เข้าไป)
+            // -------------------------
+            PaymentScreen paymentScreen =
+                    new PaymentScreen(
+                            newOrder, // <-- ส่งวัตถุ newOrder เข้าไป
+                            () -> {
 
-                        item.setQuantity(
-                                item.getQuantity() + 1
-                        );
+                                // ล้างตะกร้า
+                                cartItems.clear();
 
-                        found = true;
-                        break;
-                    }
-                }
+                                // อัปเดตจำนวนตะกร้า
+                                updateCartBadge();
 
-                if (!found) {
-                    cartItems.add(newItem);
-                }
+                                // กลับหน้า Welcome
+                                cardLayout.show(
+                                        mainPanel,
+                                        "Welcome"
+                                );
+                            }
+                    );
 
-                updateCartBadge();
-                refreshCartUI();
-            }
+            mainPanel.add(
+                    paymentScreen,
+                    "Payment"
+            );
 
-            // =====================================================
-            // เพิ่มจำนวนสินค้า
-            // =====================================================
+            cardLayout.show(
+                    mainPanel,
+                    "Payment"
+            );
+        }
+    }
 
-            private void increaseItem(OrderItem item) {
+    // =====================================================
+    // ADD TO CART
+    // =====================================================
+
+    private void addToCart(OrderItem newItem) {
+
+        boolean found = false;
+
+        for (OrderItem item : cartItems) {
+
+            if (item.getName()
+                    .equals(newItem.getName())) {
 
                 item.setQuantity(
                         item.getQuantity() + 1
                 );
 
-                updateCartBadge();
-                refreshCartUI();
-            }
-
-            // =====================================================
-            // ลดจำนวนสินค้า
-            // =====================================================
-
-            private void decreaseItem(OrderItem item) {
-
-                if (item.getQuantity() > 1) {
-
-                    item.setQuantity(
-                            item.getQuantity() - 1
-                    );
-
-                } else {
-
-                    cartItems.remove(item);
-                }
-
-                updateCartBadge();
-                refreshCartUI();
-            }
-
-            // =====================================================
-            // ลบสินค้า
-            // =====================================================
-
-            private void removeItem(OrderItem item) {
-
-                cartItems.remove(item);
-
-                updateCartBadge();
-                refreshCartUI();
-            }
-
-            // =====================================================
-            // อัปเดตตัวเลขบนตะกร้า
-            // =====================================================
-
-            private void updateCartBadge() {
-
-                int total =
-                        cartItems.stream()
-                                .mapToInt(
-                                        OrderItem::getQuantity
-                                )
-                                .sum();
-
-                menuScreen.updateCartBadge(total);
-            }
-
-            // =====================================================
-            // Refresh Cart
-            // =====================================================
-
-            private void refreshCartUI() {
-
-                if (cartScreen != null) {
-
-                    cartScreen.renderCartList(
-                            cartItems,
-                            this::increaseItem,
-                            this::decreaseItem,
-                            this::removeItem
-                    );
-                }
+                found = true;
+                break;
             }
         }
+
+        if (!found) {
+            cartItems.add(newItem);
+        }
+
+        updateCartBadge();
+        refreshCartUI();
+    }
+
+    // เพิ่มจำนวนสินค้า
+    private void increaseItem(OrderItem item) {
+
+        item.setQuantity(
+                item.getQuantity() + 1
+        );
+
+        updateCartBadge();
+        refreshCartUI();
+    }
+
+    // ลดจำนวนสินค้า
+    private void decreaseItem(OrderItem item) {
+
+        if (item.getQuantity() > 1) {
+
+            item.setQuantity(
+                    item.getQuantity() - 1
+            );
+
+        } else {
+
+            cartItems.remove(item);
+        }
+
+        updateCartBadge();
+        refreshCartUI();
+    }
+
+    // ลบสินค้า
+    private void removeItem(OrderItem item) {
+
+        cartItems.remove(item);
+
+        updateCartBadge();
+        refreshCartUI();
+    }
+
+    // อัปเดตตัวเลขบนตะกร้า
+    private void updateCartBadge() {
+
+        int total =
+                cartItems.stream()
+                        .mapToInt(
+                                OrderItem::getQuantity
+                        )
+                        .sum();
+
+        menuScreen.updateCartBadge(total);
+    }
+
+    // Refresh Cart
+    private void refreshCartUI() {
+
+        if (cartScreen != null) {
+
+            cartScreen.renderCartList(
+                    cartItems,
+                    this::increaseItem,
+                    this::decreaseItem,
+                    this::removeItem
+            );
+        }
+    }
+}

@@ -1,16 +1,17 @@
 package view;
 
+import model.Order;
 import model.OrderItem;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.net.URL;
-import java.util.List;
 
 public class PaymentScreen extends JPanel {
 
-    public PaymentScreen(List<OrderItem> items, double totalPrice, Runnable onFinished) {
+    // ปรับให้รับ Order order เข้ามาแทน List<OrderItem> และ double totalPrice
+    public PaymentScreen(Order order, Runnable onFinished) {
         // ใช้ GridBagLayout เพื่อล็อคให้อยู่ตรงกลางหน้าจอเสมอ
         setLayout(new GridBagLayout());
         setBackground(Color.WHITE);
@@ -58,7 +59,8 @@ public class PaymentScreen extends JPanel {
         orderTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         container.add(orderTitleLabel);
 
-        JLabel orderNumLabel = new JLabel("A-002");
+        // *** ดึงเลขออร์เดอร์จริงจากวัตถุ order ***
+        JLabel orderNumLabel = new JLabel(order.getOrderId());
         orderNumLabel.setFont(new Font("Impact", Font.PLAIN, 36));
         orderNumLabel.setForeground(new Color(180, 0, 0));
         orderNumLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -73,7 +75,8 @@ public class PaymentScreen extends JPanel {
         itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.Y_AXIS));
         itemsPanel.setBackground(Color.WHITE);
 
-        for (OrderItem item : items) {
+        // ดึงรายการสินค้าจากวัตถุ order
+        for (OrderItem item : order.getItems()) {
             JPanel row = new JPanel(new BorderLayout(10, 0));
             row.setOpaque(false);
             row.setBorder(new EmptyBorder(8, 12, 8, 12));
@@ -144,7 +147,8 @@ public class PaymentScreen extends JPanel {
         // ==========================================
         // 3. ราคารวมทั้งสิ้น & ปุ่ม
         // ==========================================
-        JLabel grandTotalLabel = new JLabel(String.format("ราคารวมทั้งสิ้น: ฿%.0f", totalPrice));
+        // ดึงราคารวมจากวัตถุ order
+        JLabel grandTotalLabel = new JLabel(String.format("ราคารวมทั้งสิ้น: ฿%.0f", order.getTotalPrice()));
         grandTotalLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
         grandTotalLabel.setForeground(new Color(180, 0, 0));
         grandTotalLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
