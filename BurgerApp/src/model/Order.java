@@ -11,6 +11,11 @@ public class Order {
     private String paymentMethod;
     private String status; // เพิ่มการเก็บสถานะออเดอร์ (เช่น "รอคิว", "กำลังทำ")
 
+    // ฟังก์ชันสำหรับกำหนดค่า orderCounter เริ่มต้น (ดึงจากไฟล์)
+    public static void setOrderCounter(int counter) {
+        orderCounter = counter;
+    }
+
     public Order(List<OrderItem> items, double totalPrice, String paymentMethod) {
         this.orderId = String.format("A-%03d", orderCounter++);
         this.items = items;

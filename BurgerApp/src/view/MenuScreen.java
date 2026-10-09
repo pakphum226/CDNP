@@ -214,7 +214,7 @@ public class MenuScreen extends JPanel {
     private JPanel createFoodCard(String name, String resourcePath, double price) {
         JPanel card = new JPanel(new BorderLayout(0, 5));
         card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createLineBorder(new Color(225, 220, 215)));
+        card.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 215)));
 
         Image rawImg = loadImage(resourcePath);
 
