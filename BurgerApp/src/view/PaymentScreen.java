@@ -10,7 +10,6 @@ import java.net.URL;
 
 public class PaymentScreen extends JPanel {
 
-    // ปรับให้รับ Order order เข้ามาแทน List<OrderItem> และ double totalPrice
     public PaymentScreen(Order order, Runnable onFinished) {
         // ใช้ GridBagLayout เพื่อล็อคให้อยู่ตรงกลางหน้าจอเสมอ
         setLayout(new GridBagLayout());
@@ -59,7 +58,7 @@ public class PaymentScreen extends JPanel {
         orderTitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         container.add(orderTitleLabel);
 
-        // *** ดึงเลขออร์เดอร์จริงจากวัตถุ order ***
+        // *** ดึงเลขออร์เดอร์จริงจาก order ***
         JLabel orderNumLabel = new JLabel(order.getOrderId());
         orderNumLabel.setFont(new Font("Impact", Font.PLAIN, 36));
         orderNumLabel.setForeground(new Color(180, 0, 0));
@@ -147,7 +146,7 @@ public class PaymentScreen extends JPanel {
         // ==========================================
         // 3. ราคารวมทั้งสิ้น & ปุ่ม
         // ==========================================
-        // ดึงราคารวมจากวัตถุ order
+        // ดึงราคารวมจาก order
         JLabel grandTotalLabel = new JLabel(String.format("ราคารวมทั้งสิ้น: ฿%.0f", order.getTotalPrice()));
         grandTotalLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
         grandTotalLabel.setForeground(new Color(180, 0, 0));
