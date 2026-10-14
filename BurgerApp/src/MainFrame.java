@@ -4,7 +4,6 @@ import view.CartScreen;
 import view.EmployeeScreen;
 import view.PaymentScreen;
 
-import model.Discount;
 import model.Order;
 import model.OrderItem;
 import model.OrderManager;
@@ -237,22 +236,14 @@ public class MainFrame extends JFrame {
         }
 
         // -------------------------
-        // คำนวณราคารวม (ก่อนลด)
+        // คำนวณราคารวม
         // -------------------------
-        double subtotal =
+        double totalPrice =
                 cartItems.stream()
                         .mapToDouble(
                                 OrderItem::getTotalPrice
                         )
                         .sum();
-
-        // ===== ส่วนลด: เปิดใช้ =====
-       double discount = Discount.calculate(cartItems);
-        // ===== ส่วนลด: ปิดใช้ (เอา // หน้าบรรทัดล่างออก แล้วใส่ // หน้าบรรทัดบน) =====
-        //double discount = 0;
-
-        // ราคาสุทธิ (ตัวแปรที่เหลือในเมธอดนี้ใช้ค่านี้ทั้งหมด)
-        double totalPrice = subtotal - discount;
 
         // -------------------------
         // สร้าง UI กล่องข้อความสำหรับ Pop-up ยืนยัน (ใส่ Scrollbar)
@@ -299,15 +290,6 @@ public class MainFrame extends JFrame {
 
         dialogContent.add(scrollPane);
         dialogContent.add(Box.createRigidArea(new Dimension(0, 10)));
-
-        // ===== ส่วนลด: แสดงรายการส่วนลดในกล่องยืนยัน =====
-        for (String note : Discount.describe(cartItems)) {
-            JLabel noteLabel = new JLabel(note);
-            noteLabel.setFont(new Font("Tahoma", Font.PLAIN, 13));
-            noteLabel.setForeground(new Color(34, 139, 34));
-            noteLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            dialogContent.add(noteLabel);
-        }
 
         JLabel totalLabel = new JLabel(String.format("ราคารวมทั้งสิ้น: ฿%.0f", totalPrice));
         totalLabel.setFont(new Font("Tahoma", Font.BOLD, 15));
@@ -358,7 +340,7 @@ public class MainFrame extends JFrame {
         if (confirm == JOptionPane.OK_OPTION) {
 
             // -------------------------
-            // 1. สร้าง Order ใหม่ (ราคาสุทธิหลังหักส่วนลด)
+            // 1. สร้าง Order ใหม่
             // -------------------------
             Order newOrder =
                     new Order(

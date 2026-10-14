@@ -1,6 +1,5 @@
 package view;
 
-import model.Discount;
 import model.Order;
 import model.OrderItem;
 
@@ -8,7 +7,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.net.URL;
-import java.util.List;
 
 public class PaymentScreen extends JPanel {
 
@@ -144,27 +142,8 @@ public class PaymentScreen extends JPanel {
 
         container.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // ===== ส่วนลด: สรุปบนหน้าชำระเงิน (ไม่มีส่วนลด = ไม่แสดงอะไร) =====
-        List<String> notes = Discount.describe(order.getItems());
-        if (!notes.isEmpty()) {
-            JLabel subLabel = new JLabel(String.format("ราคาสินค้า: ฿%.0f", Discount.subtotal(order.getItems())));
-            subLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
-            subLabel.setForeground(Color.GRAY);
-            subLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            container.add(subLabel);
-
-            for (String n : notes) {
-                JLabel noteLabel = new JLabel(n);
-                noteLabel.setFont(new Font("Tahoma", Font.PLAIN, 13));
-                noteLabel.setForeground(new Color(34, 139, 34));
-                noteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-                container.add(noteLabel);
-            }
-            container.add(Box.createRigidArea(new Dimension(0, 6)));
-        }
-
         // 3. ราคารวมทั้งสิ้น & ปุ่ม
-        // ดึงราคารวมจากวัตถุ order (ราคาสุทธิหลังหักส่วนลดแล้ว)
+        // ดึงราคารวมจากวัตถุ order
         JLabel grandTotalLabel = new JLabel(String.format("ราคารวมทั้งสิ้น: ฿%.0f", order.getTotalPrice()));
         grandTotalLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
         grandTotalLabel.setForeground(new Color(180, 0, 0));
