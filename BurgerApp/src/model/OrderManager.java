@@ -1,19 +1,19 @@
 package model;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,41 +22,112 @@ public class OrderManager {
     private static final List<Order> activeOrders = new ArrayList<>();
     private static Runnable onOrdersChangedListener;
 
-    private static final String FILE_PATH = "orders_history.csv";
-
-    // ไฟล์เก็บออเดอร์ที่ยังค้างอยู่ (ใช้กู้คืนตอนเปิดโปรแกรมใหม่)
-    private static final Path ACTIVE_FILE = Paths.get("active_orders.txt");
+    private static final Path FILE_PATH = Paths.get("orders_history.csv");
+    private static final String HEADER =
+            "Timestamp,OrderId,Status,EventType,TotalPrice,Items,PaymentMethod,ItemsData";
+    private static final String STATUS_DONE = "ทำเสร็จแล้ว";
 
     static {
-        loadLastOrderCounter();
-        loadActiveOrders();
+        loadFromCsv();
     }
 
-    public static void loadLastOrderCounter() {
-        File file = new File(FILE_PATH);
-        if (!file.exists()) return;
+    // =====================================================
+    // โหลดตอนเปิดโปรแกรม: ตั้งตัวนับเลขออเดอร์ + กู้ออเดอร์ที่ยังค้าง
+    // =====================================================
+    private static void loadFromCsv() {
+        if (!Files.exists(FILE_PATH)) return;
 
         int maxOrderNum = 0;
-        Pattern pattern = Pattern.compile("A-(\\d+)");
+        Pattern idPattern = Pattern.compile("A-(\\d+)");
+        // เก็บแถวล่าสุดของแต่ละออเดอร์ (คงลำดับตามที่เจอครั้งแรก)
+        Map<String, List<String>> lastRowById = new LinkedHashMap<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                Matcher matcher = pattern.matcher(line);
-                if (matcher.find()) {
-                    int num = Integer.parseInt(matcher.group(1));
-                    if (num > maxOrderNum) {
-                        maxOrderNum = num;
-                    }
+        try {
+            for (String line : Files.readAllLines(FILE_PATH, StandardCharsets.UTF_8)) {
+                if (line.isBlank() || line.startsWith("Timestamp")) continue;
+
+                List<String> f = parseCsvLine(line);
+                if (f.size() < 2) continue;
+
+                Matcher m = idPattern.matcher(f.get(1));
+                if (m.find()) {
+                    maxOrderNum = Math.max(maxOrderNum, Integer.parseInt(m.group(1)));
+                }
+
+                // แถวเก่าที่ไม่มีคอลัมน์ ItemsData กู้ไม่ได้ ข้ามไป
+                if (f.size() >= 8) {
+                    lastRowById.put(f.get(1), f);
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("เกิดข้อผิดพลาดในการอ่านไฟล์ประวัติ: " + e.getMessage());
         }
 
         Order.setOrderCounter(maxOrderNum + 1);
+
+        // ออเดอร์ที่แถวล่าสุดยังไม่ใช่ "ทำเสร็จแล้ว" = ยังค้างอยู่
+        for (List<String> f : lastRowById.values()) {
+            try {
+                String status = f.get(2);
+                if (STATUS_DONE.equals(status)) continue;
+
+                List<OrderItem> items = new ArrayList<>();
+                double total = 0;
+                for (String itemStr : f.get(7).split("\\|")) {
+                    if (itemStr.isBlank()) continue;
+                    String[] p = itemStr.split("~", -1);
+                    OrderItem item = new OrderItem(
+                            p[0], p[1],
+                            Double.parseDouble(p[2]),
+                            Integer.parseInt(p[3]));
+                    items.add(item);
+                    total += item.getTotalPrice();
+                }
+
+                activeOrders.add(new Order(f.get(1), items, total, f.get(6), status));
+            } catch (Exception e) {
+                System.err.println("ข้ามออเดอร์ที่อ่านไม่ได้: " + e.getMessage());
+            }
+        }
     }
 
+    // อ่าน 1 บรรทัด CSV (รองรับ "..." และ "" ภายในข้อความ)
+    private static List<String> parseCsvLine(String line) {
+        List<String> fields = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        boolean inQuotes = false;
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (inQuotes) {
+                if (c == '"') {
+                    if (i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                        sb.append('"');
+                        i++;
+                    } else {
+                        inQuotes = false;
+                    }
+                } else {
+                    sb.append(c);
+                }
+            } else {
+                if (c == '"') {
+                    inQuotes = true;
+                } else if (c == ',') {
+                    fields.add(sb.toString());
+                    sb.setLength(0);
+                } else {
+                    sb.append(c);
+                }
+            }
+        }
+        fields.add(sb.toString());
+        return fields;
+    }
+
+    // =====================================================
+    // API ที่หน้าจอเรียกใช้ (เหมือนเดิม)
+    // =====================================================
     public static List<Order> getActiveOrders() {
         return activeOrders;
     }
@@ -65,151 +136,85 @@ public class OrderManager {
         onOrdersChangedListener = listener;
     }
 
-    // 1. เพิ่มออเดอร์ใหม่
     public static void addOrder(Order order) {
         order.setStatus("รอคิว");
         activeOrders.add(order);
-
         saveOrderToFile(order, "สั่งซื้อสำเร็จ");
-        saveActiveOrders();
-
-        if (onOrdersChangedListener != null) {
-            onOrdersChangedListener.run();
-        }
+        notifyChanged();
     }
 
-    // 2. เริ่มทำออเดอร์
     public static void startOrder(Order order) {
         order.setStatus("กำลังทำ");
-
         saveOrderToFile(order, "เริ่มทำออเดอร์");
-        saveActiveOrders();
-
-        if (onOrdersChangedListener != null) {
-            onOrdersChangedListener.run();
-        }
+        notifyChanged();
     }
 
-    // 3. อัปเดตสถานะทั่วไป
     public static void updateOrderStatus(Order order, String newStatus, String eventType) {
         order.setStatus(newStatus);
         saveOrderToFile(order, eventType);
-        saveActiveOrders();
-
-        if (onOrdersChangedListener != null) {
-            onOrdersChangedListener.run();
-        }
+        notifyChanged();
     }
 
-    // 4. ทำเสร็จ / ลบออกจากรายการ
     public static void removeOrder(Order order) {
-        order.setStatus("ทำเสร็จแล้ว");
+        order.setStatus(STATUS_DONE);
         activeOrders.remove(order);
-
         saveOrderToFile(order, "ทำเสร็จเรียบร้อย");
-        saveActiveOrders();
+        notifyChanged();
+    }
 
+    private static void notifyChanged() {
         if (onOrdersChangedListener != null) {
             onOrdersChangedListener.run();
         }
     }
 
     // =====================================================
-    // บันทึก / โหลดออเดอร์ที่ยังค้าง
-    // รูปแบบ 1 บรรทัดต่อ 1 ออเดอร์ (คั่นด้วย TAB):
-    // orderId \t status \t totalPrice \t paymentMethod \t name~imagePath~price~qty|name~imagePath~price~qty
+    // บันทึกลง CSV
     // =====================================================
-
-    private static void saveActiveOrders() {
-        List<String> lines = new ArrayList<>();
-
-        for (Order o : activeOrders) {
-            StringBuilder items = new StringBuilder();
-            for (OrderItem it : o.getItems()) {
-                if (items.length() > 0) items.append("|");
-                items.append(it.getName()).append("~")
-                     .append(it.getImagePath()).append("~")
-                     .append(it.getPrice()).append("~")
-                     .append(it.getQuantity());
-            }
-            lines.add(o.getOrderId() + "\t" + o.getStatus() + "\t"
-                    + o.getTotalPrice() + "\t" + o.getPaymentMethod() + "\t" + items);
-        }
-
-        try {
-            Files.write(ACTIVE_FILE, lines, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            System.err.println("เกิดข้อผิดพลาดในการบันทึกออเดอร์ที่ค้าง: " + e.getMessage());
-        }
+    private static String q(String s) {
+        return "\"" + s.replace("\"", "\"\"") + "\"";
     }
 
-    private static void loadActiveOrders() {
-        if (!Files.exists(ACTIVE_FILE)) return;
-
-        try {
-            for (String line : Files.readAllLines(ACTIVE_FILE, StandardCharsets.UTF_8)) {
-                if (line.isBlank()) continue;
-
-                String[] p = line.split("\t", -1);
-                if (p.length < 5) continue;
-
-                List<OrderItem> items = new ArrayList<>();
-                for (String itemStr : p[4].split("\\|")) {
-                    if (itemStr.isBlank()) continue;
-                    String[] f = itemStr.split("~", -1);
-                    items.add(new OrderItem(
-                            f[0], f[1],
-                            Double.parseDouble(f[2]),
-                            Integer.parseInt(f[3])));
-                }
-
-                activeOrders.add(new Order(
-                        p[0], items,
-                        Double.parseDouble(p[2]),
-                        p[3], p[1]));
-            }
-        } catch (Exception e) {
-            System.err.println("เกิดข้อผิดพลาดในการโหลดออเดอร์ที่ค้าง: " + e.getMessage());
-        }
-    }
-
-    // --- บันทึกประวัติลงไฟล์ CSV (ของเดิม) ---
     private static void saveOrderToFile(Order order, String eventType) {
-        File file = new File(FILE_PATH);
-        boolean isNewFile = !file.exists();
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String currentTime = dtf.format(LocalDateTime.now());
+        boolean isNewFile = !Files.exists(FILE_PATH);
+        String currentTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .format(LocalDateTime.now());
 
         double totalPrice = 0;
-        StringBuilder itemsDetail = new StringBuilder();
+        StringBuilder itemsDetail = new StringBuilder(); // ข้อความอ่านง่ายสำหรับเปิดใน Excel
+        StringBuilder itemsData = new StringBuilder();   // ข้อมูลที่โปรแกรมอ่านกลับ
         for (OrderItem item : order.getItems()) {
             totalPrice += item.getTotalPrice();
+
+            if (itemsDetail.length() > 0) itemsDetail.append("; ");
             itemsDetail.append(item.getName())
                        .append(" x").append(item.getQuantity())
-                       .append(" (฿").append(item.getTotalPrice()).append("); ");
+                       .append(" (฿").append(item.getTotalPrice()).append(")");
+
+            if (itemsData.length() > 0) itemsData.append("|");
+            itemsData.append(item.getName()).append("~")
+                     .append(item.getImagePath()).append("~")
+                     .append(item.getPrice()).append("~")
+                     .append(item.getQuantity());
         }
 
-        if (itemsDetail.length() > 2) {
-            itemsDetail.setLength(itemsDetail.length() - 2);
-        }
+        String record = String.join(",",
+                q(currentTime),
+                q(order.getOrderId()),
+                q(order.getStatus()),
+                q(eventType),
+                String.format(Locale.US, "%.2f", totalPrice),
+                q(itemsDetail.toString()),
+                q(order.getPaymentMethod()),
+                q(itemsData.toString())
+        ) + System.lineSeparator();
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+        try (BufferedWriter writer = Files.newBufferedWriter(FILE_PATH, StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
             if (isNewFile) {
-                writer.write("Timestamp,OrderId,Status,EventType,TotalPrice,Items\n");
+                writer.write(HEADER + System.lineSeparator());
             }
-
-            String record = String.format("\"%s\",\"%s\",\"%s\",\"%s\",%.2f,\"%s\"%n",
-                    currentTime,
-                    order.getOrderId(),
-                    order.getStatus(),
-                    eventType,
-                    totalPrice,
-                    itemsDetail.toString()
-            );
-
             writer.write(record);
-            writer.flush();
         } catch (IOException e) {
             System.err.println("เกิดข้อผิดพลาดในการบันทึกไฟล์ CSV: " + e.getMessage());
         }

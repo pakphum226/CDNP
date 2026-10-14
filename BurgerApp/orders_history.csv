@@ -1,0 +1,2 @@
+Timestamp,OrderId,Status,EventType,TotalPrice,Items,PaymentMethod,ItemsData
+"2026-10-15 06:17:59","A-001","รอคิว","สั่งซื้อสำเร็จ",100.00,"Egg and cheese x1 (฿50.0); Fried Chicken x1 (฿50.0)","ชำระเงินสำเร็จ","Egg and cheese~/assets/Egg and cheese.png~50.0~1|Fried Chicken~/assets/Fried Chicken.png~50.0~1"
