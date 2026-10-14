@@ -1,35 +1,34 @@
-﻿import view.WelcomeScreen;
-import view.WhiteBoxScreen;
+import view.WelcomeScreen;
 import view.MenuScreen;
 import view.CartScreen;
 import view.EmployeeScreen;
 import view.PaymentScreen;
 
+import model.Discount;
 import model.Order;
 import model.OrderItem;
 import model.OrderManager;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+
+
 
 public class MainFrame extends JFrame {
 
     private CardLayout cardLayout;
     private JPanel mainPanel;
-    private List<OrderItem> cartItems = new ArrayList<>();
+    private final List<OrderItem> cartItems = new ArrayList<>();
 
     private MenuScreen menuScreen;
     private CartScreen cartScreen;
     private EmployeeScreen employeeScreen;
 
     public MainFrame() {
-        // ตั้งค่าหน้าต่างหลัก
+
         setTitle("CDNP BURGERS System");
         setSize(1000, 700);
         setMinimumSize(new Dimension(430, 700));
@@ -40,180 +39,251 @@ public class MainFrame extends JFrame {
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        // ==========================================
-        // 1. หน้า Welcome & WhiteBox
-        // ==========================================
-        WelcomeScreen welcomeScreen = new WelcomeScreen(new Runnable() {
-            @Override
-            public void run() {
-                cardLayout.show(mainPanel, "Menu");
-            }
-        });
+        // =========================
+        // Welcome
+        // =========================
+        WelcomeScreen welcomeScreen =
+                new WelcomeScreen(() ->
+                        cardLayout.show(mainPanel, "Menu")
+                );
 
-        WhiteBoxScreen whiteBoxScreen = new WhiteBoxScreen(new Runnable() {
-            @Override
-            public void run() {
-                cardLayout.show(mainPanel, "Menu");
-            }
-        });
+        // =========================
+        // WhiteBox
+        // =========================
 
-        // ==========================================
-        // 2. หน้า MenuScreen
-        // ==========================================
+            
+
+        // =========================
+        // Menu
+        // =========================
         menuScreen = new MenuScreen(
-            new Runnable() { // ปุ่มย้อนกลับ
-                @Override
-                public void run() {
-                    cardLayout.show(mainPanel, "Welcome");
-                }
-            },
-            new Runnable() { // เปิดตะกร้า
-                @Override
-                public void run() {
+
+                // ปุ่มย้อนกลับ
+                () -> cardLayout.show(mainPanel, "Welcome"),
+
+                // เปิดตะกร้า
+                () -> {
                     refreshCartUI();
                     cardLayout.show(mainPanel, "Cart");
-                }
-            },
-            new Consumer<OrderItem>() { // เพิ่มสินค้า
-                @Override
-                public void accept(OrderItem item) {
-                    addToCart(item);
-                }
-            }
+                },
+
+                // เพิ่มสินค้า
+                this::addToCart
         );
 
-        // ==========================================
-        // 3. หน้า CartScreen
-        // ==========================================
+        // Cart
         cartScreen = new CartScreen(
-            new Runnable() { // ย้อนกลับไปหน้า Menu
-                @Override
-                public void run() {
-                    cardLayout.show(mainPanel, "Menu");
-                }
-            },
-            new Consumer<OrderItem>() { // เพิ่มจำนวน
-                @Override
-                public void accept(OrderItem item) {
-                    increaseItem(item);
-                }
-            },
-            new Consumer<OrderItem>() { // ลดจำนวน
-                @Override
-                public void accept(OrderItem item) {
-                    decreaseItem(item);
-                }
-            },
-            new Consumer<OrderItem>() { // ลบสินค้า
-                @Override
-                public void accept(OrderItem item) {
-                    removeItem(item);
-                }
-            },
-            new Runnable() { // ชำระเงิน
-                @Override
-                public void run() {
-                    processCheckout();
-                }
-            }
+
+                // กลับไป Menu
+                () -> cardLayout.show(mainPanel, "Menu"),
+
+                // เพิ่มจำนวน
+                this::increaseItem,
+
+                // ลดจำนวน
+                this::decreaseItem,
+
+                // ลบสินค้า
+                this::removeItem,
+
+                // ชำระเงิน
+                this::processCheckout
         );
 
-        // ==========================================
-        // 4. หน้า EmployeeScreen
-        // ==========================================
-        employeeScreen = new EmployeeScreen(new Runnable() {
-            @Override
-            public void run() {
-                cardLayout.show(mainPanel, "Menu");
-            }
-        });
+        // =========================
+        // Employee
+        // =========================
+        employeeScreen =
+                new EmployeeScreen(() ->
+                        cardLayout.show(mainPanel, "Menu")
+                );
 
-        // ใส่หน้าต่างทั้งหมดลงใน mainPanel
+        // =========================
+        // เพิ่มหน้าต่างทั้งหมด
+        // =========================
         mainPanel.add(welcomeScreen, "Welcome");
-        mainPanel.add(whiteBoxScreen, "WhiteBox");
         mainPanel.add(menuScreen, "Menu");
         mainPanel.add(cartScreen, "Cart");
         mainPanel.add(employeeScreen, "Employee");
 
-        // ==========================================
-        // 5. เมนูด้านบน (MenuBar)
-        // ==========================================
-        Font menuFont = new Font("Tahoma", Font.PLAIN, 14);
+        // =========================
+        // Menu Bar
+        // =========================
+        Font menuFont =
+                new Font("Tahoma", Font.PLAIN, 14);
+
         JMenuBar menuBar = new JMenuBar();
-        JMenu systemMenu = new JMenu("สลับบัญชีใช้งาน");
+
+        JMenu systemMenu =
+                new JMenu("สลับบัญชีใช้งาน");
+
         systemMenu.setFont(menuFont);
 
-        JMenuItem userItem = new JMenuItem("บัญชีผู้ใช้", getResizedIcon("/assets/User.jpg", 20, 20));
-        userItem.setFont(menuFont);
-        userItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cardLayout.show(mainPanel, "Welcome");
-            }
-        });
+        // -------------------------
+        // บัญชีผู้ใช้
+        // -------------------------
+        JMenuItem userItem =
+                new JMenuItem(
+                        "บัญชีผู้ใช้",
+                        getResizedIcon(
+                                "/assets/User.jpg",
+                                20,
+                                20
+                        )
+                );
 
-        JMenuItem employeeItem = new JMenuItem("บัญชีพนักงาน", getResizedIcon("/assets/Employee.png", 20, 20));
+        userItem.setFont(menuFont);
+
+        userItem.addActionListener(e ->
+                cardLayout.show(
+                        mainPanel,
+                        "Welcome"
+                )
+        );
+
+        // -------------------------
+        // บัญชีพนักงาน
+        // -------------------------
+        JMenuItem employeeItem =
+                new JMenuItem(
+                        "บัญชีพนักงาน",
+                        getResizedIcon(
+                                "/assets/Employee.png",
+                                20,
+                                20
+                        )
+                );
+
         employeeItem.setFont(menuFont);
-        employeeItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                employeeScreen.refreshOrders();
-                cardLayout.show(mainPanel, "Employee");
-            }
+
+        employeeItem.addActionListener(e -> {
+
+            employeeScreen.refreshOrders();
+
+            cardLayout.show(
+                    mainPanel,
+                    "Employee"
+            );
         });
 
         systemMenu.add(userItem);
         systemMenu.add(employeeItem);
+
         menuBar.add(systemMenu);
+
         setJMenuBar(menuBar);
 
+        // =========================
+        // แสดงหน้าเริ่มต้น
+        // =========================
         add(mainPanel);
-        cardLayout.show(mainPanel, "Welcome");
+
+        cardLayout.show(
+                mainPanel,
+                "Welcome"
+        );
     }
 
-    // ==========================================
-    // ฟังก์ชันย่อยการทำงาน
-    // ==========================================
+    // =====================================================
+    // Resize Icon
 
-    private ImageIcon getResizedIcon(String path, int width, int height) {
-        URL imgURL = getClass().getResource(path);
+
+    private ImageIcon getResizedIcon(
+            String path,
+            int width,
+            int height
+    ) {
+
+        URL imgURL =
+                getClass().getResource(path);
+
         if (imgURL != null) {
-            ImageIcon icon = new ImageIcon(imgURL);
-            Image img = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+
+            ImageIcon icon =
+                    new ImageIcon(imgURL);
+
+            Image img =
+                    icon.getImage()
+                            .getScaledInstance(
+                                    width,
+                                    height,
+                                    Image.SCALE_SMOOTH
+                            );
+
             return new ImageIcon(img);
         }
+
         return null;
     }
 
+    // =====================================================
+    // CHECKOUT
+
     private void processCheckout() {
+
+        // -------------------------
+        // ไม่มีสินค้า
+        // -------------------------
         if (cartItems.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "ไม่มีสินค้าในตะกร้า!", "แจ้งเตือน", JOptionPane.WARNING_MESSAGE);
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "ไม่มีสินค้าในตะกร้า!",
+                    "แจ้งเตือน",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
             return;
         }
 
-        // คำนวณราคารวมด้วย Loop แบบธรรมดา
-        double totalPrice = 0;
-        for (int i = 0; i < cartItems.size(); i++) {
-            totalPrice += cartItems.get(i).getTotalPrice();
-        }
+        // -------------------------
+        // คำนวณราคารวม (ก่อนลด)
+        // -------------------------
+        double subtotal =
+                cartItems.stream()
+                        .mapToDouble(
+                                OrderItem::getTotalPrice
+                        )
+                        .sum();
 
+        // ===== ส่วนลด: เปิดใช้ =====
+        double discount = Discount.calculate(cartItems);
+        // ===== ส่วนลด: ปิดใช้ (เอา // หน้าบรรทัดล่างออก แล้วใส่ // หน้าบรรทัดบน) =====
+        // double discount = 0;
+
+        // ราคาสุทธิ (ตัวแปรที่เหลือในเมธอดนี้ใช้ค่านี้ทั้งหมด)
+        double totalPrice = subtotal - discount;
+
+        // -------------------------
+        // สร้าง UI กล่องข้อความสำหรับ Pop-up ยืนยัน (ใส่ Scrollbar)
+        // -------------------------
         JPanel dialogContent = new JPanel();
         dialogContent.setLayout(new BoxLayout(dialogContent, BoxLayout.Y_AXIS));
 
         JLabel headerLabel = new JLabel("คุณต้องการยืนยันการสั่งซื้อหรือไม่?");
         headerLabel.setFont(new Font("Tahoma", Font.BOLD, 13));
+        headerLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         dialogContent.add(headerLabel);
         dialogContent.add(Box.createRigidArea(new Dimension(0, 10)));
 
+        // สร้างรายละเอียดรายการสินค้า
         StringBuilder itemsText = new StringBuilder();
         itemsText.append("--------------------------------------------------\n");
 
-        for (int i = 0; i < cartItems.size(); i++) {
-            OrderItem item = cartItems.get(i);
-            itemsText.append("• " + item.getName() + "\n");
-            itemsText.append("  จำนวน: " + item.getQuantity() + " ชิ้น ");
-            itemsText.append("(฿" + (int)item.getPrice() + " x " + item.getQuantity() + " = ฿" + (int)item.getTotalPrice() + ")\n");
+        for (OrderItem item : cartItems) {
+            itemsText.append(
+                    String.format(
+                            "• %s\n" +
+                            "  จำนวน: %d ชิ้น  (฿%.0f x %d = ฿%.0f)\n",
+                            item.getName(),
+                            item.getQuantity(),
+                            item.getPrice(),
+                            item.getQuantity(),
+                            item.getTotalPrice()
+                    )
+            );
         }
+
         itemsText.append("--------------------------------------------------\n");
 
         JTextArea textArea = new JTextArea(itemsText.toString());
@@ -221,52 +291,135 @@ public class MainFrame extends JFrame {
         textArea.setEditable(false);
         textArea.setOpaque(false);
 
+        // ครอบด้วย JScrollPane และจำกัดความสูงไว้ที่ 280px เพื่อไม่ให้ป๊อปอัปยืดล้นขอบจอ
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setPreferredSize(new Dimension(380, 280));
+        scrollPane.getVerticalScrollBar().setUnitIncrement(14);
         scrollPane.setBorder(null);
 
         dialogContent.add(scrollPane);
         dialogContent.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        JLabel totalLabel = new JLabel("ราคารวมทั้งสิ้น: ฿" + (int)totalPrice);
+        // ===== ส่วนลด: แสดงรายการส่วนลดในกล่องยืนยัน =====
+        for (String note : Discount.describe(cartItems)) {
+            JLabel noteLabel = new JLabel(note);
+            noteLabel.setFont(new Font("Tahoma", Font.PLAIN, 13));
+            noteLabel.setForeground(new Color(34, 139, 34));
+            noteLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            dialogContent.add(noteLabel);
+        }
+
+        JLabel totalLabel = new JLabel(String.format("ราคารวมทั้งสิ้น: ฿%.0f", totalPrice));
         totalLabel.setFont(new Font("Tahoma", Font.BOLD, 15));
         totalLabel.setForeground(new Color(180, 0, 0));
+        totalLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         dialogContent.add(totalLabel);
 
-        ImageIcon confirmIcon = getResizedIcon("/assets/Slip_2..png", 60, 60);
-        int confirm = JOptionPane.showConfirmDialog(
-                this,
-                dialogContent,
-                "ยืนยันคำสั่งซื้อ",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE,
-                confirmIcon
-        );
+        // =================================================
+        // หน้าต่างยืนยันคำสั่งซื้อ
+
+        ImageIcon confirmIcon = 
+                getResizedIcon(
+                        "/assets/Slip_2..png",
+                        60,
+                        60
+                );
+
+        int confirm;
+
+        if (confirmIcon != null) {
+
+            confirm =
+                    JOptionPane.showConfirmDialog(
+                            this,
+                            dialogContent,
+                            "ยืนยันคำสั่งซื้อ",
+                            JOptionPane.OK_CANCEL_OPTION,
+                            JOptionPane.PLAIN_MESSAGE,
+                            confirmIcon
+                    );
+
+        } else {
+
+            // ถ้าหารูปไม่เจอ ให้ใช้แบบปกติ
+            confirm =
+                    JOptionPane.showConfirmDialog(
+                            this,
+                            dialogContent,
+                            "ยืนยันคำสั่งซื้อ",
+                            JOptionPane.OK_CANCEL_OPTION,
+                            JOptionPane.QUESTION_MESSAGE
+                    );
+        }
+
+        // =================================================
+        // กด OK
 
         if (confirm == JOptionPane.OK_OPTION) {
-            Order newOrder = new Order(new ArrayList<>(cartItems), totalPrice, "ชำระเงินสำเร็จ");
-            OrderManager.addOrder(newOrder);
 
-            PaymentScreen paymentScreen = new PaymentScreen(newOrder, new Runnable() {
-                @Override
-                public void run() {
-                    cartItems.clear();
-                    updateCartBadge();
-                    cardLayout.show(mainPanel, "Welcome");
-                }
-            });
+            // -------------------------
+            // 1. สร้าง Order ใหม่ (ราคาสุทธิหลังหักส่วนลด)
+            // -------------------------
+            Order newOrder =
+                    new Order(
+                            new ArrayList<>(cartItems),
+                            totalPrice,
+                            "ชำระเงินสำเร็จ"
+                    );
 
-            mainPanel.add(paymentScreen, "Payment");
-            cardLayout.show(mainPanel, "Payment");
+            // 2. บันทึกลง OrderManager
+            OrderManager.addOrder(newOrder);            
+
+            // -------------------------
+            // 3. เปิดหน้า Payment (ส่งวัตถุ newOrder เข้าไป)
+            // -------------------------
+            PaymentScreen paymentScreen =
+                    new PaymentScreen(
+                            newOrder, // <-- ส่งวัตถุ newOrder เข้าไป
+                            () -> {
+
+                                // ล้างตะกร้า
+                                cartItems.clear();
+
+                                // อัปเดตจำนวนตะกร้า
+                                updateCartBadge();
+
+                                // กลับหน้า Welcome
+                                cardLayout.show(
+                                        mainPanel,
+                                        "Welcome"
+                                );
+                            }
+                    );
+
+            mainPanel.add(
+                    paymentScreen,
+                    "Payment"
+            );
+
+            cardLayout.show(
+                    mainPanel,
+                    "Payment"
+            );
         }
     }
 
+    // =====================================================
+    // ADD TO CART
+
     private void addToCart(OrderItem newItem) {
+
         boolean found = false;
-        for (int i = 0; i < cartItems.size(); i++) {
-            OrderItem item = cartItems.get(i);
-            if (item.getName().equals(newItem.getName())) {
-                item.setQuantity(item.getQuantity() + 1);
+
+        for (OrderItem item : cartItems) {
+
+            if (item.getName()
+                    .equals(newItem.getName())) {
+
+                item.setQuantity(
+                        item.getQuantity() + 1
+                );
+
                 found = true;
                 break;
             }
@@ -280,58 +433,67 @@ public class MainFrame extends JFrame {
         refreshCartUI();
     }
 
+    // เพิ่มจำนวนสินค้า
     private void increaseItem(OrderItem item) {
-        item.setQuantity(item.getQuantity() + 1);
+
+        item.setQuantity(
+                item.getQuantity() + 1
+        );
+
         updateCartBadge();
         refreshCartUI();
     }
 
+    // ลดจำนวนสินค้า
     private void decreaseItem(OrderItem item) {
+
         if (item.getQuantity() > 1) {
-            item.setQuantity(item.getQuantity() - 1);
+
+            item.setQuantity(
+                    item.getQuantity() - 1
+            );
+
         } else {
+
             cartItems.remove(item);
         }
+
         updateCartBadge();
         refreshCartUI();
     }
 
+    // ลบสินค้า
     private void removeItem(OrderItem item) {
+
         cartItems.remove(item);
+
         updateCartBadge();
         refreshCartUI();
     }
 
+    // อัปเดตตัวเลขบนตะกร้า
     private void updateCartBadge() {
-        int total = 0;
-        for (int i = 0; i < cartItems.size(); i++) {
-            total += cartItems.get(i).getQuantity();
-        }
+
+        int total =
+                cartItems.stream()
+                        .mapToInt(
+                                OrderItem::getQuantity
+                        )
+                        .sum();
+
         menuScreen.updateCartBadge(total);
     }
 
+    // Refresh Cart
     private void refreshCartUI() {
+
         if (cartScreen != null) {
+
             cartScreen.renderCartList(
-                cartItems,
-                new Consumer<OrderItem>() {
-                    @Override
-                    public void accept(OrderItem item) {
-                        increaseItem(item);
-                    }
-                },
-                new Consumer<OrderItem>() {
-                    @Override
-                    public void accept(OrderItem item) {
-                        decreaseItem(item);
-                    }
-                },
-                new Consumer<OrderItem>() {
-                    @Override
-                    public void accept(OrderItem item) {
-                        removeItem(item);
-                    }
-                }
+                    cartItems,
+                    this::increaseItem,
+                    this::decreaseItem,
+                    this::removeItem
             );
         }
     }
