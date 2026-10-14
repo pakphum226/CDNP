@@ -1,10 +1,10 @@
 ﻿import view.WelcomeScreen;
-import view.WhiteBoxScreen;
 import view.MenuScreen;
 import view.CartScreen;
 import view.EmployeeScreen;
 import view.PaymentScreen;
 
+import model.Discount;
 import model.Order;
 import model.OrderItem;
 import model.OrderManager;
@@ -14,6 +14,8 @@ import java.awt.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+
 
 public class MainFrame extends JFrame {
 
@@ -48,10 +50,8 @@ public class MainFrame extends JFrame {
         // =========================
         // WhiteBox
         // =========================
-        WhiteBoxScreen whiteBoxScreen =
-                new WhiteBoxScreen(() ->
-                        cardLayout.show(mainPanel, "Menu")
-                );
+
+            
 
         // =========================
         // Menu
@@ -102,7 +102,6 @@ public class MainFrame extends JFrame {
         // เพิ่มหน้าต่างทั้งหมด
         // =========================
         mainPanel.add(welcomeScreen, "Welcome");
-        mainPanel.add(whiteBoxScreen, "WhiteBox");
         mainPanel.add(menuScreen, "Menu");
         mainPanel.add(cartScreen, "Cart");
         mainPanel.add(employeeScreen, "Employee");
@@ -187,7 +186,7 @@ public class MainFrame extends JFrame {
 
     // =====================================================
     // Resize Icon
-    // =====================================================
+
 
     private ImageIcon getResizedIcon(
             String path,
@@ -219,7 +218,6 @@ public class MainFrame extends JFrame {
 
     // =====================================================
     // CHECKOUT
-    // =====================================================
 
     private void processCheckout() {
 
@@ -239,14 +237,22 @@ public class MainFrame extends JFrame {
         }
 
         // -------------------------
-        // คำนวณราคารวม
+        // คำนวณราคารวม (ก่อนลด)
         // -------------------------
-        double totalPrice =
+        double subtotal =
                 cartItems.stream()
                         .mapToDouble(
                                 OrderItem::getTotalPrice
                         )
                         .sum();
+
+        // ===== ส่วนลด: เปิดใช้ =====
+       double discount = Discount.calculate(cartItems);
+        // ===== ส่วนลด: ปิดใช้ (เอา // หน้าบรรทัดล่างออก แล้วใส่ // หน้าบรรทัดบน) =====
+        //double discount = 0;
+
+        // ราคาสุทธิ (ตัวแปรที่เหลือในเมธอดนี้ใช้ค่านี้ทั้งหมด)
+        double totalPrice = subtotal - discount;
 
         // -------------------------
         // สร้าง UI กล่องข้อความสำหรับ Pop-up ยืนยัน (ใส่ Scrollbar)
@@ -294,6 +300,15 @@ public class MainFrame extends JFrame {
         dialogContent.add(scrollPane);
         dialogContent.add(Box.createRigidArea(new Dimension(0, 10)));
 
+        // ===== ส่วนลด: แสดงรายการส่วนลดในกล่องยืนยัน =====
+        for (String note : Discount.describe(cartItems)) {
+            JLabel noteLabel = new JLabel(note);
+            noteLabel.setFont(new Font("Tahoma", Font.PLAIN, 13));
+            noteLabel.setForeground(new Color(34, 139, 34));
+            noteLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            dialogContent.add(noteLabel);
+        }
+
         JLabel totalLabel = new JLabel(String.format("ราคารวมทั้งสิ้น: ฿%.0f", totalPrice));
         totalLabel.setFont(new Font("Tahoma", Font.BOLD, 15));
         totalLabel.setForeground(new Color(180, 0, 0));
@@ -302,7 +317,6 @@ public class MainFrame extends JFrame {
 
         // =================================================
         // หน้าต่างยืนยันคำสั่งซื้อ
-        // =================================================
 
         ImageIcon confirmIcon = 
                 getResizedIcon(
@@ -340,12 +354,11 @@ public class MainFrame extends JFrame {
 
         // =================================================
         // กด OK
-        // =================================================
 
         if (confirm == JOptionPane.OK_OPTION) {
 
             // -------------------------
-            // 1. สร้าง Order ใหม่
+            // 1. สร้าง Order ใหม่ (ราคาสุทธิหลังหักส่วนลด)
             // -------------------------
             Order newOrder =
                     new Order(
@@ -393,7 +406,6 @@ public class MainFrame extends JFrame {
 
     // =====================================================
     // ADD TO CART
-    // =====================================================
 
     private void addToCart(OrderItem newItem) {
 

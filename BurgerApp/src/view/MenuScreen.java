@@ -47,7 +47,7 @@ public class MenuScreen extends JPanel {
         backBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         backBtn.addActionListener(e -> onBackToWelcome.run());
 
-        JLabel logoLabel = createIconLabel("/assets/CDNP BURGER.png", 240, 45);
+        JLabel logoLabel = createIconLabel("", 100, 150); //ใส่โลโก้
 
         JPanel rightHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
         rightHeader.setOpaque(false);
@@ -168,7 +168,7 @@ public class MenuScreen extends JPanel {
                 {"Red and Black", "/assets/Red and Black.png", 110.0},
                 {"Super Chicken Set", "/assets/Super Chicken Set.png", 99.0},
                 {"Titan Super Burger", "/assets/Titan Super Burger.png", 150.0},
-                {"Triple Hamburger", "/assets/Triple Hamburger.png", 130.0},
+                {"Triple Hamburger", "/assets/Triple Hamburger.png",130.0},
                 {"Great Value Set", "/assets/Great Value Set.png", 89.0},
                 {"Black set", "/assets/Black set.png", 95.0},
                 {"Eat-to-Die Set", "/assets/Eat-to-Die Set.png", 180.0}

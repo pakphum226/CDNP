@@ -25,7 +25,7 @@ public class CartScreen extends JPanel {
 
         // กำหนดขนาดมาตรฐาน ขนาดขั้นต่ำ และขนาดสูงสุด เพื่อป้องกันการล้นหรือย่อจนเบียดกัน
         Dimension preferredSize = new Dimension(430, 750);
-        Dimension minSize = new Dimension(380, 500);
+        Dimension minSize = new Dimension(400, 500);
         
         cartContainer.setPreferredSize(preferredSize);
         cartContainer.setMinimumSize(minSize);

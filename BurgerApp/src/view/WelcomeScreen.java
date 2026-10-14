@@ -33,9 +33,7 @@ public class WelcomeScreen extends JPanel {
         super.paintComponent(g);
         if (bgImage != null) {
             Graphics2D g2d = (Graphics2D) g.create();
-            // เปิดโหมดวาดภาพเนียน คมชัด ไม่แตก
-            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
 
             int panelW = getWidth();
             int panelH = getHeight();
